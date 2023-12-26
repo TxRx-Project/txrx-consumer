@@ -1,0 +1,18 @@
+version: '3'
+services:
+  node:
+    container_name: txrx-redis-consumer-node
+    image: txrx/redis-consumer-node:devel
+    build:
+      context: .
+      args:
+        GIT_NAME: ${GIT_NAME}
+        GIT_EMAIL: ${GIT_EMAIL}
+    volumes:
+      - ./:/usr/src/app
+      - ~/.npmrc:/root/.npmrc
+      - $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
+    environment:
+      - SSH_AUTH_SOCK=$SSH_AUTH_SOCK
+    env_file:
+      - .env
