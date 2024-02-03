@@ -13,6 +13,7 @@ build:
 
 install:
 	docker compose up -d
+	docker compose exec node npm install
 
 clear: 
 	docker compose down --remove-orphans
