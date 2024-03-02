@@ -3,7 +3,8 @@ export type Consumable = {
     consumer?: string;
     count: number;
     block: number;
-    stream: string;
+    stream: string
+    mode: ConsumingMode;
     id: string;
 };
 
@@ -20,4 +21,9 @@ export type ConsumeItem = {
     stream: string,
     id: string,
     payload: Payload,
+};
+
+export enum ConsumingMode {
+    PEL,
+    NORMAL,
 };

@@ -1,6 +1,5 @@
-import { Consumable, ConsumeItem } from "../types/consumer.types";
+import { Consumable, ConsumeItem, ConsumingMode } from "../types/consumer.types";
 import Consumer from "./consumer";
-import { setTimeout } from 'timers/promises';
 
 export default abstract class Worker {
     public abstract startPel(): string;
@@ -10,7 +9,6 @@ export default abstract class Worker {
     private consumer: Consumer;
     private running = true;
     private consuming: Consumable;
-    private nextPel = false;
 
     constructor(url: string) {
         this.consumer = new Consumer(url);
@@ -26,10 +24,6 @@ export default abstract class Worker {
 
     public getConsuming(): Consumable {
         return this.consuming;
-    }
-
-    public consumePel() {
-        this.nextPel = true;
     }
 
     public async run(): Promise<void> {
@@ -52,16 +46,12 @@ export default abstract class Worker {
 
             await this.consumption(items);
 
-            if (this.consuming.id !== '>') {
-                await setTimeout(this.consuming.block);
-
+            if (this.consuming.mode === ConsumingMode.PEL) {
                 const last = items.pop();
-                this.consuming.id = last?.id ?? '>';
-            }
-
-            if (this.nextPel) {
-                this.nextPel = false;
-                this.consuming.id = this.startPel();
+                this.consuming.id = last?.id ?? '0';
+                this.consuming.mode = ConsumingMode.NORMAL;
+            } else {
+                this.consuming.mode = ConsumingMode.PEL;
             }
         }
     }

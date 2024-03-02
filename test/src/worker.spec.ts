@@ -1,17 +1,8 @@
 import redisMock from 'ioredis-mock';
 import DummyWorker from '../worker/dummyWorker';
-import { Consumable, Consumption } from '../../types/consumer.types';
-
-let timeoutArgs: any = [];
+import { Consumable, ConsumingMode, Consumption } from '../../types/consumer.types';
 
 jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
-jest.mock('timers/promises', () => {
-    return {
-        setTimeout: async (...args: any) => {
-            timeoutArgs.push(args);
-        },
-    }
-});
 
 let redisArgs: any[] = [];
 let xgroupResolve = 0;
@@ -83,7 +74,6 @@ describe('The Worker class', () => {
         infoArgs = [];
         errorArgs = [];
         xgroupException = null;
-        timeoutArgs = [];
         worker.stopsAt = 1;
         worker.consumptions = 0;
     });
@@ -141,7 +131,7 @@ describe('The Worker class', () => {
         expect(infoArgs).toEqual([]);
     });
 
-    it('process pending message (PEL mode)', async () => {
+    it('process messages alternating modes, starting in PEL @ 0', async () => {
         streamItems = [
             [
                 [id1, null], 
@@ -168,21 +158,21 @@ describe('The Worker class', () => {
             'XGROUP', 
             [ 'CREATE', 'TEST:STREAM', 'TEST:GROUP', '$', 'MKSTREAM' ],
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '$' ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '0' ],
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id2 ],
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id2 ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id3 ],
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id3 ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id2 ],
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id4 ],
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id5 ],
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id5 ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id6 ],
             'XACK',
@@ -190,7 +180,7 @@ describe('The Worker class', () => {
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id8 ],            
             'XREADGROUP',
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id8 ],  
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id5 ],  
             'XREADGROUP', 
             [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
         ]);
@@ -203,19 +193,12 @@ describe('The Worker class', () => {
             stream: 'TEST:STREAM',
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
-            id: '>',
+            id: '0',
+            mode: ConsumingMode.PEL,
         });
-
-        expect(timeoutArgs).toEqual([
-            [2000],
-            [2000],
-            [2000],
-            [2000],
-            [2000],
-        ]);
     });
 
-    it('it process message in the normal mode (stuck to the > special ID)', async () => {
+    it('process messages alternating modes, starting in NORMAL @ 0', async () => {
         streamItems = [
             [
                 [id1, ['test', '1', 'foo', 'bar']], 
@@ -242,7 +225,8 @@ describe('The Worker class', () => {
             stream: 'TEST:STREAM',
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
-            id: '>',
+            id: '0',
+            mode: ConsumingMode.NORMAL,
         };
 
         await worker.run();
@@ -257,7 +241,7 @@ describe('The Worker class', () => {
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id2 ],
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '0' ],
             'XREADGROUP', 
             [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
             'XACK',
@@ -265,13 +249,13 @@ describe('The Worker class', () => {
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id5 ],
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id3 ],
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id8 ],            
             'XREADGROUP',
             [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],  
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id8 ],
         ]);
 
         consuming = worker.getConsuming();
@@ -282,95 +266,12 @@ describe('The Worker class', () => {
             stream: 'TEST:STREAM',
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
-            id: '>',
+            id: '0',
+            mode: ConsumingMode.NORMAL,
         });
 
-        expect(timeoutArgs).toEqual([]);
         expect(errorArgs).toEqual([
             ['error']
-        ]);
-    });
-
-    it('can switch to the PEL mode on demand', async () => {
-        streamItems = [
-            [
-                [id1, ['test', '1', 'foo', 'bar']], 
-                [id2, ['test', '2', 'foo', 'bar']], 
-            ], [
-                [id3, ['pel', '0-0']], 
-            ], [
-                [id4, ['test', '4', 'foo', 'bat']], 
-                [id5, ['test', '5', 'foo', 'bax']],  
-            ], [
-                [id6, ['test', '6', 'foo', 'bax']],
-                [id7, ['test', '7', 'foo', 'bax']],
-                [id8, ['test', '8', 'foo', 'bax']],  
-            ]
-        ];
-
-        worker.stopsAt = streamItems.length + 2;
-
-        worker.setRunning(true);
-
-        worker.consumingOverride = {
-            count: 100,
-            block: 2000,
-            stream: 'TEST:STREAM',
-            group: 'TEST:GROUP',
-            consumer: 'TEST:CONSUMER:0',
-            id: '>',
-        };
-
-        await worker.run();
-
-        expect(redisArgs).toEqual([
-            'XGROUP', 
-            [ 'CREATE', 'TEST:STREAM', 'TEST:GROUP', '$', 'MKSTREAM' ],
-            'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
-            'XACK',
-            [ 'TEST:STREAM', 'TEST:GROUP', id1 ],
-            'XACK',
-            [ 'TEST:STREAM', 'TEST:GROUP', id2 ],
-            'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
-            'XACK',
-            [ 'TEST:STREAM', 'TEST:GROUP', id3 ],
-            'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '0-0' ],
-            'XACK',
-            [ 'TEST:STREAM', 'TEST:GROUP', id4 ],
-            'XACK',
-            [ 'TEST:STREAM', 'TEST:GROUP', id5 ],
-            'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id5 ],
-            'XACK',
-            [ 'TEST:STREAM', 'TEST:GROUP', id6 ],   
-            'XACK',
-            [ 'TEST:STREAM', 'TEST:GROUP', id7 ],   
-            'XACK',
-            [ 'TEST:STREAM', 'TEST:GROUP', id8 ],            
-            'XREADGROUP',
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id8 ],  
-            'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
-        ]);
-
-        consuming = worker.getConsuming();
-
-        expect(consuming).toEqual({
-            count: 100,
-            block: 2000,
-            stream: 'TEST:STREAM',
-            group: 'TEST:GROUP',
-            consumer: 'TEST:CONSUMER:0',
-            id: '>',
-        });
-
-        expect(timeoutArgs).toEqual([
-            [2000],
-            [2000],
-            [2000],
         ]);
     });
 });

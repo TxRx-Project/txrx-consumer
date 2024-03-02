@@ -1,5 +1,5 @@
 import Worker from '../../src/worker';
-import { Consumable, ConsumeItem } from '../../types/consumer.types';
+import { Consumable, ConsumeItem, ConsumingMode } from '../../types/consumer.types';
 
 export default class DummyWorker extends Worker {
     public group = true;
@@ -23,7 +23,8 @@ export default class DummyWorker extends Worker {
                 stream: 'TEST:STREAM',
                 group: 'TEST:GROUP',
                 consumer: 'TEST:CONSUMER:0',
-                id: '$'
+                id: '0',
+                mode: ConsumingMode.PEL,
             };
         }
         
@@ -31,7 +32,8 @@ export default class DummyWorker extends Worker {
             stream: 'TEST:STREAM',
             count: 1,
             block: 2000,
-            id: '$'
+            id: '0',
+            mode: ConsumingMode.PEL,
         };
     }
 
@@ -50,9 +52,6 @@ export default class DummyWorker extends Worker {
     public async consume(item: ConsumeItem): Promise<boolean> {
         if (typeof item.payload.throw !== 'undefined') {
             throw item.payload.throw;
-        }
-        if (typeof item.payload.pel !== 'undefined') {
-            this.consumePel();
         }
 
         return Object.keys(item.payload).length > 0;

@@ -1,6 +1,6 @@
 import redisMock from 'ioredis-mock';
 import Consumer from '../../src/consumer';
-import { Consumable, ConsumeItem, Consumption } from '../../types/consumer.types';
+import { Consumable, ConsumeItem, ConsumingMode, Consumption } from '../../types/consumer.types';
 
 jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
 
@@ -37,7 +37,8 @@ describe('The Consumer class', () => {
             block: 2000,
             stream: 'TEST:STREAM',
             group: 'TEST:GROUP',
-            id: '>'
+            id: '>',
+            mode: ConsumingMode.PEL,
         };
 
         xgroupResolve = 1;
@@ -57,7 +58,8 @@ describe('The Consumer class', () => {
             stream: 'TEST:STREAM',
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
-            id: '>'
+            id: '>',
+            mode: ConsumingMode.PEL,
         };
 
         const item: ConsumeItem = {
@@ -87,7 +89,8 @@ describe('The Consumer class', () => {
             stream: 'TEST:STREAM',
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
-            id: '>'
+            id: '>',
+            mode: ConsumingMode.PEL,
         };
 
         const ids = [
@@ -112,7 +115,8 @@ describe('The Consumer class', () => {
             stream: 'TEST:STREAM',
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
-            id: '>'
+            id: '>',
+            mode: ConsumingMode.PEL,
         };
     
         xreadgroupArgs = [];
@@ -206,7 +210,8 @@ describe('The Consumer class', () => {
             count: 1,
             block: 1,
             stream: 'TEST:STREAM',
-            id: '$'
+            id: '$',
+            mode: ConsumingMode.PEL,
         };
         
         expect(consumer.consume(consumable)).resolves.toEqual([]);
