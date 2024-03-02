@@ -3,6 +3,7 @@ services:
   node:
     container_name: txrx-redis-consumer-node
     image: txrx/redis-consumer-node:devel
+    user: "${UID}:${GID}"
     build:
       context: .
       args:

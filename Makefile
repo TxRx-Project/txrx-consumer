@@ -8,6 +8,12 @@ GIT_EMAIL := $(shell git config --get user.email)
 export GIT_NAME
 export GIT_EMAIL
 
+UID := $(shell id -u)
+GID := $(shell id -g)
+
+export UID
+export GID
+
 build: 
 	docker compose build
 
