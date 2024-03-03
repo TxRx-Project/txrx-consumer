@@ -1,6 +1,6 @@
 {
   "name": "@txrx/redis-consumer",
-  "version": "1.0.2",
+  "version": "1.0.0",
   "description": "TxRx - Redis Streams Consumer",
   "author": "klez",
   "main": "dist/index.js",

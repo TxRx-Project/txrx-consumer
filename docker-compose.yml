@@ -11,7 +11,7 @@ services:
         GIT_EMAIL: ${GIT_EMAIL}
     volumes:
       - ./:/usr/src/app
-      - ~/.npmrc:/root/.npmrc
+      - ~/.npmrc:/home/node/.npmrc
       - $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
     environment:
       - SSH_AUTH_SOCK=$SSH_AUTH_SOCK
