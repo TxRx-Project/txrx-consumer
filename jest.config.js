@@ -7,6 +7,7 @@ module.exports = {
     collectCoverageFrom: ['src/**/*.ts', 'index.ts'],
     coverageDirectory: 'coverage',
     coverageReporters: ['text', 'lcov'], 
+    coveragePathIgnorePatterns: ['interfaces\/I.*\.ts$'],
     coverageThreshold: {
         global: {
             branches: 100,

@@ -131,7 +131,7 @@ describe('The Worker class', () => {
         expect(infoArgs).toEqual([]);
     });
 
-    it('process messages alternating modes, starting in PEL @ 0', async () => {
+    it('process messages in PEL mode', async () => {
         streamItems = [
             [
                 [id1, null], 
@@ -148,6 +148,16 @@ describe('The Worker class', () => {
             ]
         ];
 
+        worker.consumingOverride = {
+            count: 100,
+            block: 2000,
+            stream: 'TEST:STREAM',
+            group: 'TEST:GROUP',
+            consumer: 'TEST:CONSUMER:0',
+            id: '0',
+            mode: ConsumingMode.PEL,
+        };
+
         worker.stopsAt = streamItems.length + 2;
 
         worker.setRunning(true);
@@ -162,17 +172,17 @@ describe('The Worker class', () => {
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id2 ],
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id2 ],
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id3 ],
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id2 ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id3 ],
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id4 ],
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id5 ],
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id5 ],
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id6 ],
             'XACK',
@@ -180,7 +190,7 @@ describe('The Worker class', () => {
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id8 ],            
             'XREADGROUP',
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id5 ],  
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id8 ],  
             'XREADGROUP', 
             [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
         ]);
@@ -193,12 +203,12 @@ describe('The Worker class', () => {
             stream: 'TEST:STREAM',
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
-            id: '0',
-            mode: ConsumingMode.PEL,
+            id: '>',
+            mode: ConsumingMode.NORMAL,
         });
     });
 
-    it('process messages alternating modes, starting in NORMAL @ 0', async () => {
+    it('process messages in NORMAL mode', async () => {
         streamItems = [
             [
                 [id1, ['test', '1', 'foo', 'bar']], 
@@ -225,7 +235,7 @@ describe('The Worker class', () => {
             stream: 'TEST:STREAM',
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
-            id: '0',
+            id: '>',
             mode: ConsumingMode.NORMAL,
         };
 
@@ -241,7 +251,7 @@ describe('The Worker class', () => {
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id2 ],
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '0' ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
             'XREADGROUP', 
             [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
             'XACK',
@@ -249,13 +259,13 @@ describe('The Worker class', () => {
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id5 ],
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id3 ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
             'XACK',
             [ 'TEST:STREAM', 'TEST:GROUP', id8 ],            
             'XREADGROUP',
             [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],  
             'XREADGROUP', 
-            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', id8 ],
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
         ]);
 
         consuming = worker.getConsuming();
@@ -266,7 +276,7 @@ describe('The Worker class', () => {
             stream: 'TEST:STREAM',
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
-            id: '0',
+            id: '>',
             mode: ConsumingMode.NORMAL,
         });
 

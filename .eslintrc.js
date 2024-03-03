@@ -19,6 +19,14 @@ module.exports = {
       node: true,
   },
   ignorePatterns: [".eslintrc.js", "test", "coverage", "dist"],
+  overrides: [
+    {
+      files: ['*.ts'],
+      rules: {
+        'no-undef': 'off',
+      },
+    },
+  ],
   rules: {
     "tsdoc/syntax": "error",
     "jsdoc/require-param": "error",

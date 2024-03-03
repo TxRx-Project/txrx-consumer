@@ -1,15 +1,12 @@
+import { IWorker } from '../../src/interfaces/IWorker';
 import Worker from '../../src/worker';
 import { Consumable, ConsumeItem, ConsumingMode } from '../../types/consumer.types';
 
-export default class DummyWorker extends Worker {
+export default class DummyWorker extends Worker implements IWorker {
     public group = true;
     public consumingOverride: Consumable;
     public stopsAt = 1;
     public consumptions = 0;
-
-    public startPel(): string {
-        return '0-0';
-    }
 
     public consumable(): Consumable {
         if (this.consumingOverride) {
