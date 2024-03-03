@@ -26,8 +26,7 @@ This type defines the following properties:
 - **stream** - name of the stream to consume
 - **count** - items to gather per read
 - **block** - time to block and wait for messages
-- **mode** - either PEL or NORMAL (new messages only)
-- **id** - the ID from where to start consuming in PEL mode, in normal mode is just the special `>` id
+- **id** - the ID from where to start consuming in PEL mode, for new messages only the special `>` id is used
 
 ### ConsumeItem
 

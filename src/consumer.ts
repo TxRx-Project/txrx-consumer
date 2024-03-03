@@ -1,4 +1,4 @@
-import { Consumable, ConsumeItem, ConsumingMode, Consumption } from './../types/consumer.types';
+import { Consumable, ConsumeItem, Consumption } from './../types/consumer.types';
 import { RedisConnector } from "@txrx/redis-pool";
 import Redis from 'ioredis';
 
@@ -80,11 +80,6 @@ export default class Consumer {
      */
     public async consume(what: Consumable): Promise<ConsumeItem[]> {
         let consumption: Consumption[] | null;
-        let id = what.id;
-
-        if (what.mode === ConsumingMode.NORMAL) {
-            id = '>';
-        }
 
         if (what.consumer && what.group) {
             consumption = await this.redis.xreadgroup(
@@ -97,7 +92,7 @@ export default class Consumer {
                 what.block, 
                 'STREAMS', 
                 what.stream, 
-                id
+                what.id,
             ) as Consumption[] | null;
         } else {
             consumption = await this.redis.xread(
@@ -107,7 +102,7 @@ export default class Consumer {
                 what.block, 
                 'STREAMS',
                 what.stream, 
-                id
+                what.id,
             ) as Consumption[] | null;
         }
 

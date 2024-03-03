@@ -23,10 +23,6 @@ export type Consumable = {
      */
     stream: string
     /**
-     * Mode of consumption, either PEL or NORMAL (new messages only).
-     */
-    mode: ConsumingMode;
-    /**
      * Keep track of the last consumed id, only applies to PEL mode.
      */
     id: string;
@@ -64,11 +60,3 @@ export type ConsumeItem = {
      */
     payload: Payload,
 };
-
-/**
- * Consuming mode for XREAD/XREADGROUP.
- */
-export enum ConsumingMode {
-    PEL,
-    NORMAL,
-}

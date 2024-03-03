@@ -1,6 +1,6 @@
 import redisMock from 'ioredis-mock';
 import DummyWorker from '../worker/dummyWorker';
-import { Consumable, ConsumingMode, Consumption } from '../../types/consumer.types';
+import { Consumable, Consumption } from '../../types/consumer.types';
 
 jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
 
@@ -155,7 +155,6 @@ describe('The Worker class', () => {
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
             id: '0',
-            mode: ConsumingMode.PEL,
         };
 
         worker.stopsAt = streamItems.length + 2;
@@ -204,7 +203,6 @@ describe('The Worker class', () => {
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
             id: '>',
-            mode: ConsumingMode.NORMAL,
         });
     });
 
@@ -236,7 +234,6 @@ describe('The Worker class', () => {
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
             id: '>',
-            mode: ConsumingMode.NORMAL,
         };
 
         await worker.run();
@@ -277,7 +274,85 @@ describe('The Worker class', () => {
             group: 'TEST:GROUP',
             consumer: 'TEST:CONSUMER:0',
             id: '>',
-            mode: ConsumingMode.NORMAL,
+        });
+
+        expect(errorArgs).toEqual([
+            ['error']
+        ]);
+    });
+
+    it('process messages using the ID set on runtime at least once', async () => {
+        streamItems = [
+            [
+                [id1, ['test', '1', 'foo', 'bar']], 
+                [id2, ['test', '2', 'foo', 'bar', 'set', '123-1']], 
+            ], 
+            [],
+            [
+                [id3, null], 
+            ], [
+                [id4, ['test', '4', 'foo', 'bat']], 
+                [id5, ['test', '5', 'foo', 'bax']],  
+            ], [
+                [id6, ['throw', 'error']], 
+                [id7, null],  
+                [id8, ['test', '5', 'foo', 'bax']],  
+            ]
+        ];
+
+        worker.stopsAt = streamItems.length + 2;
+
+        worker.setRunning(true);
+
+        worker.consumingOverride = {
+            count: 100,
+            block: 2000,
+            stream: 'TEST:STREAM',
+            group: 'TEST:GROUP',
+            consumer: 'TEST:CONSUMER:0',
+            id: '>',
+        };
+
+        await worker.run();
+
+        expect(redisArgs).toEqual([
+            'XGROUP', 
+            [ 'CREATE', 'TEST:STREAM', 'TEST:GROUP', '$', 'MKSTREAM' ],
+            'XREADGROUP', 
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
+            'XACK',
+            [ 'TEST:STREAM', 'TEST:GROUP', id1 ],
+            'XACK',
+            [ 'TEST:STREAM', 'TEST:GROUP', id2 ],
+            'XREADGROUP', 
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '123-1' ],
+            'XREADGROUP', 
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
+            'XREADGROUP', 
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
+            'XACK',
+            [ 'TEST:STREAM', 'TEST:GROUP', id4 ],
+            'XACK',
+            [ 'TEST:STREAM', 'TEST:GROUP', id5 ],
+            'XREADGROUP', 
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
+            'XACK',
+            [ 'TEST:STREAM', 'TEST:GROUP', id8 ],            
+            'XREADGROUP',
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],  
+            'XREADGROUP', 
+            [ 'GROUP', 'TEST:GROUP', 'TEST:CONSUMER:0', 'COUNT', 100, 'BLOCK', 2000, 'STREAMS', 'TEST:STREAM', '>' ],
+        ]);
+
+        consuming = worker.getConsuming();
+
+        expect(consuming).toEqual({
+            count: 100,
+            block: 2000,
+            stream: 'TEST:STREAM',
+            group: 'TEST:GROUP',
+            consumer: 'TEST:CONSUMER:0',
+            id: '>',
         });
 
         expect(errorArgs).toEqual([

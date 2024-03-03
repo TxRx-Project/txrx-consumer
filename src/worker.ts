@@ -1,4 +1,4 @@
-import { Consumable, ConsumeItem, ConsumingMode } from "../types/consumer.types";
+import { Consumable, ConsumeItem } from "../types/consumer.types";
 import Consumer from "./consumer";
 import { IWorker } from "./interfaces/IWorker";
 
@@ -81,19 +81,19 @@ export default abstract class Worker implements IWorker {
         }
 
         while (this.running) {
+            const id = this.consuming.id;
             const items: ConsumeItem[] = await this.consumer.consume(this.consuming);
 
             await this.consumption(items);
 
-            if (this.consuming.mode === ConsumingMode.PEL) {
+            if (this.consuming.id !== '>') {
                 const last = items.pop();
-                this.consuming.id = last?.id ?? '>';
-            }
 
-            if (this.consuming.id === '>') {
-                this.consuming.mode = ConsumingMode.NORMAL;
-            } else {
-                this.consuming.mode = ConsumingMode.PEL;
+                if (id === this.consuming.id) {
+                    this.consuming.id = last?.id ?? '>';
+                } else {
+                    // this will force test coverage
+                }
             }
         }
     }
