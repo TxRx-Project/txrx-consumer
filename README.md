@@ -30,7 +30,7 @@ This type defines the following properties:
 
 ### ConsumeItem
 
-This type defines the items to be consumed from the stream. Once gathered, the worker will parse the intricate structure into this rather simple structureL
+This type defines the items to be consumed from the stream. Once gathered, the worker will parse the intricate structure into this rather simple structure.
 
 - **stream** - the name of the stream this item came from
 - **id** - id of the item within its stream
