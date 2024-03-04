@@ -43,7 +43,7 @@ describe('The Consumer class', () => {
         xgroupResolve = 1;
         xgroupArgs = [];
 
-        expect(consumer.createGroup(consumable)).resolves.toEqual(1);
+        await expect(consumer.createGroup(consumable)).resolves.toEqual(1);
         expect(xgroupArgs).toEqual([
             'CREATE', 'TEST:STREAM', 'TEST:GROUP', '$', 'MKSTREAM'
         ]);
@@ -71,7 +71,7 @@ describe('The Consumer class', () => {
         xackResolve = 1;
         xackArgs = [];
 
-        expect(consumer.ack(consumable, item)).resolves.toEqual(1);
+        await expect(consumer.ack(consumable, item)).resolves.toEqual(1);
         expect(xackArgs).toEqual([
             'TEST:STREAM', 'TEST:GROUP', id,
         ]);
@@ -99,7 +99,7 @@ describe('The Consumer class', () => {
         xackResolve = 1;
         xackArgs = [];
 
-        expect(consumer.ack(consumable, ids)).resolves.toEqual(1);
+        await expect(consumer.ack(consumable, ids)).resolves.toEqual(1);
         expect(xackArgs).toEqual([
             'TEST:STREAM', 'TEST:GROUP', ...ids
         ]);
@@ -118,7 +118,7 @@ describe('The Consumer class', () => {
         xreadgroupArgs = [];
         streamItems = null;
 
-        expect(consumer.consume(consumable)).resolves.toEqual([]);
+        await expect(consumer.consume(consumable)).resolves.toEqual([]);
         expect(xreadgroupArgs).toEqual([
             'GROUP', 
             'TEST:GROUP',
@@ -144,7 +144,7 @@ describe('The Consumer class', () => {
             ],
         ]];
 
-        expect(consumer.consume(consumable)).resolves.toEqual([{
+        await expect(consumer.consume(consumable)).resolves.toEqual([{
             stream: consumable.stream,
             id: id1,
             payload: {
@@ -174,7 +174,7 @@ describe('The Consumer class', () => {
             ],
         ]];
 
-        expect(consumer.consume(consumable)).resolves.toEqual([{
+        await expect(consumer.consume(consumable)).resolves.toEqual([{
             stream: consumable.stream,
             id: id2,
             payload: {},
@@ -209,6 +209,6 @@ describe('The Consumer class', () => {
             id: '>',
         };
         
-        expect(consumer.consume(consumable)).resolves.toEqual([]);
+        await expect(consumer.consume(consumable)).resolves.toEqual([]);
     });
 });
