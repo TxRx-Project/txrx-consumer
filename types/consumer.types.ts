@@ -60,3 +60,23 @@ export type ConsumeItem = {
      */
     payload: Payload,
 };
+
+/**
+ * A proxy symbol for the for {@link Consumable}.
+ */
+export const Consumable = Symbol('Consumable');
+
+/**
+ * A proxy symbol for the for {@link Consumption}.
+ */
+export const Consumption = Symbol('Consumption');
+
+/**
+ * A proxy symbol for the for {@link Payload}.
+ */
+export const Payload = Symbol('Payload');
+
+/**
+ * A proxy symbol for the for {@link ConsumeItem}.
+ */
+export const ConsumeItem = Symbol('ConsumeItem');

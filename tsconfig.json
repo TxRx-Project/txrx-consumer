@@ -15,8 +15,9 @@
     "sourceMap": true,
     "target": "ES2019",
     "rootDirs": ["./src/"],
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "declaration": true
   },
-  "include": ["./src/**/*", "./tsconfig.json", "./*"],
+  "include": ["./src/**/*", "./tsconfig.json", "./*", "types"],
   "exclude": ["node_modules", "dist", "**/__mocks__*", "**/*.spec.**", "test", "assets"]
 }

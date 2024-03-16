@@ -1,9 +1,10 @@
 {
   "name": "@txrx/redis-consumer",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "TxRx - Redis Streams Consumer",
   "author": "klez",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "license": "ISC",
   "scripts": {
     "test": "jest",
